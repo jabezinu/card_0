@@ -13,6 +13,7 @@ A minimal React + Tailwind application that uses the device camera to scan print
 
 ## How to Run
 
+### Development
 1. Install dependencies:
    ```bash
    npm install
@@ -24,6 +25,40 @@ A minimal React + Tailwind application that uses the device camera to scan print
    ```
 
 3. Open the app in your browser (preferably on a mobile device or using mobile emulation)
+
+### Production Build
+```bash
+npm run build
+```
+
+### Deployment to Vercel
+
+#### Option 1: Vercel CLI
+1. Install Vercel CLI:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. Deploy:
+   ```bash
+   cd frontend
+   vercel
+   ```
+
+#### Option 2: GitHub Integration
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Vercel will automatically detect the configuration and deploy
+
+#### Option 3: Manual Upload
+1. Build the project: `npm run build`
+2. Upload the `dist` folder to Vercel
+
+**Important Notes:**
+- Camera access requires HTTPS in production
+- Vercel automatically provides HTTPS for all deployments
+- The app will work on mobile devices with camera support
+- Desktop browsers will show copy functionality instead of direct dialing
 
 ## How Scanning Works
 

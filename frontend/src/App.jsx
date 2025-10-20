@@ -21,6 +21,13 @@ export default function App() {
 
   const requestCameraPermission = async () => {
     try {
+      // Check if we're on HTTPS or localhost
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+      if (!isSecure) {
+        setError('Camera access requires HTTPS. Please use a secure connection.');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
       });
@@ -30,7 +37,13 @@ export default function App() {
       setPermissionGranted(true);
       setError('');
     } catch (err) {
-      setError('Camera permission required');
+      if (err.name === 'NotAllowedError') {
+        setError('Camera permission denied. Please enable camera access and refresh.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No camera found on this device.');
+      } else {
+        setError('Camera access failed. Please try again.');
+      }
       console.error('Camera permission denied:', err);
     }
   };
