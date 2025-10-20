@@ -29,10 +29,16 @@ export default function App() {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Ensure video plays
+        videoRef.current.play().catch(console.error);
       }
       setPermissionGranted(true);
       setError('');
@@ -57,44 +63,67 @@ export default function App() {
     setIsScanning(true);
     setError('');
 
-    const scan = async () => {
-      if (!videoRef.current || !isScanning) return;
-
+    // For ZXing, we need to decode continuously from the video element
+    if (!(codeReaderRef.current instanceof BarcodeDetector)) {
       try {
-        let result;
-        if (codeReaderRef.current instanceof BarcodeDetector) {
+        codeReaderRef.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+          if (result) {
+            const text = result.getText();
+            if (/^\d{12,20}$/.test(text)) {
+              setScannedCode(text);
+              setIsScanning(false);
+              codeReaderRef.current.reset();
+            } else {
+              setError('Invalid code — please rescan');
+            }
+          }
+          if (err && !(err instanceof Error)) {
+            console.error('Scanning error:', err);
+          }
+        });
+      } catch (err) {
+        console.error('ZXing setup error:', err);
+        setError('Failed to start scanning');
+        setIsScanning(false);
+      }
+    } else {
+      // BarcodeDetector continuous scanning
+      const scan = async () => {
+        if (!videoRef.current || !isScanning) return;
+
+        try {
           const barcodes = await codeReaderRef.current.detect(videoRef.current);
           if (barcodes.length > 0) {
-            result = barcodes[0].rawValue;
+            const result = barcodes[0].rawValue;
+            if (/^\d{12,20}$/.test(result)) {
+              setScannedCode(result);
+              setIsScanning(false);
+            } else {
+              setError('Invalid code — please rescan');
+            }
           }
-        } else {
-          // ZXing fallback
-          result = await codeReaderRef.current.decodeOnceFromVideoDevice(undefined, videoRef.current);
-          if (result) {
-            result = result.text;
-          }
+        } catch (err) {
+          console.error('BarcodeDetector error:', err);
         }
 
-        if (result && /^\d{12,20}$/.test(result)) {
-          setScannedCode(result);
-          setIsScanning(false);
-        } else if (result) {
-          setError('Invalid code — please rescan');
+        if (isScanning) {
+          requestAnimationFrame(scan);
         }
-      } catch (err) {
-        console.error('Scanning error:', err);
-      }
+      };
 
-      if (isScanning) {
-        requestAnimationFrame(scan);
-      }
-    };
-
-    scan();
+      scan();
+    }
   };
 
   const stopScanning = () => {
     setIsScanning(false);
+    if (codeReaderRef.current && !(codeReaderRef.current instanceof BarcodeDetector)) {
+      try {
+        codeReaderRef.current.reset();
+      } catch (err) {
+        console.error('Error stopping ZXing scanner:', err);
+      }
+    }
   };
 
 
@@ -129,7 +158,7 @@ export default function App() {
               autoPlay
               playsInline
               muted
-              className="w-full h-64 bg-black rounded-lg"
+              className="w-full h-64 bg-black rounded-lg object-cover"
             />
             <div className="absolute inset-0 border-2 border-white rounded-lg pointer-events-none">
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-16 border-2 border-green-400 bg-green-400 bg-opacity-20"></div>
