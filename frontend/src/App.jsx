@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { BrowserBarcodeReader } from '@zxing/browser';
+import { BrowserMultiFormatReader } from '@zxing/browser';
+import { formatUSSD } from './utils';
 
 export default function App() {
   const [scannedCode, setScannedCode] = useState('');
@@ -14,7 +15,7 @@ export default function App() {
     if ('BarcodeDetector' in window) {
       codeReaderRef.current = new BarcodeDetector();
     } else {
-      codeReaderRef.current = new BrowserBarcodeReader();
+      codeReaderRef.current = new BrowserMultiFormatReader();
     }
   }, []);
 
@@ -83,7 +84,6 @@ export default function App() {
     setIsScanning(false);
   };
 
-  const formatUSSD = (code) => `*805*${code}#`;
 
   const initiateCall = () => {
     const ussd = formatUSSD(scannedCode);

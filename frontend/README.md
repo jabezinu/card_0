@@ -1,16 +1,70 @@
-# React + Vite
+# Top-Up Card Scanner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal React + Tailwind application that uses the device camera to scan printed mobile top-up card numbers and formats them for USSD dialing.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Camera Scanning**: Uses device camera with BarcodeDetector API (native) or ZXing library (fallback)
+- **Number Validation**: Accepts numeric sequences of 12-20 digits only
+- **USSD Formatting**: Automatically formats scanned codes as `*805*{code}#`
+- **Mobile-First**: Responsive design optimized for mobile devices
+- **Call Initiation**: Opens `tel:` links for direct dialing on mobile devices
+- **Privacy-Focused**: No data storage or external transmission
 
-## React Compiler
+## How to Run
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Expanding the ESLint configuration
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Open the app in your browser (preferably on a mobile device or using mobile emulation)
+
+## How Scanning Works
+
+1. Grant camera permission when prompted
+2. Position the top-up card within the green overlay rectangle
+3. Tap "Scan" to start detection
+4. The app will automatically detect and validate numeric codes
+5. Once scanned, review the formatted USSD string
+6. Tap "Insert Card" to initiate the call
+
+## Browser Support
+
+- **BarcodeDetector API**: Chrome 83+, Edge 83+ (preferred for better performance)
+- **ZXing Fallback**: All modern browsers with camera support
+- **Camera Access**: Requires HTTPS in production (works on localhost in development)
+
+## Limitations
+
+- Desktop browsers will show the USSD string and copy button instead of direct dialing
+- Requires camera permission and hardware support
+- Only works with numeric barcode formats (QR codes, Code 128, etc.)
+- No offline functionality beyond basic scanning
+
+## Testing
+
+Run unit tests for the formatting function:
+```bash
+npm test
+```
+
+## Tech Stack
+
+- React 19 (functional components + hooks)
+- Tailwind CSS for styling
+- Vite for build tooling
+- @zxing/browser for barcode scanning fallback
+- Vitest for testing
+
+## Privacy & Security
+
+- Scanned codes are not stored or transmitted
+- No analytics or external logging
+- Camera access is requested only when needed
+- All processing happens client-side
